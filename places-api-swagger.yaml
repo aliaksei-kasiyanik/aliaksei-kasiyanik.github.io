@@ -1,0 +1,253 @@
+# this is an example of the Places API
+# as a demonstration of an API spec in YAML
+swagger: '2.0'
+info:
+  title: Places API
+  description: Move your app forward with the Places API
+  version: "0.0.1"
+# the domain of the service
+host: api.places.com
+# array of all schemes that your API supports
+schemes:
+  - https
+# will be prefixed to all paths
+basePath: /v1
+produces:
+  - application/json
+paths:
+  /places:
+    get:
+      summary: Return Places by location
+      description: >
+        The Places endpoint returns list of Places at a given location with information about each Place. 
+      parameters:
+        - name: latitude
+          in: query
+          description: Latitude component of location.
+          required: true
+          type: number
+          format: double
+        - name: longitude
+          in: query
+          description: Longitude component of location.
+          required: true
+          type: number
+          format: double
+        - name: radius
+          in: query
+          description: Radius of search in meters. Default is 1000, maximum is 10000.
+          required: false
+          type: number
+          format: double
+        - name: offset
+          in: query
+          type: integer
+          format: int32
+          description: Offset the list of returned results by this amount. Default is zero.
+        - name: limit
+          in: query
+          type: integer
+          format: int32
+          description: Number of items to retrieve. Default is 20, maximum is 100.
+      tags:
+        - Places
+      produces: [application/json]
+      responses:
+        200:
+          description: An array of places
+          schema:
+            $ref: '#/definitions/PlaceArray'
+        default:
+          description: Unexpected error
+          schema:
+            $ref : '#/definitions/Error'
+    post:
+      summary: Create new Place
+      description: >
+        This endpoint creates new Place. New Place id will be generated either on backend site or by client. If second then id must be specified in body.
+      parameters:
+        - name: place
+          in: body
+          description: Place
+          required: true
+          schema: 
+            $ref: '#/definitions/Place'
+      consumes:
+        - application/json
+      tags:
+        - Places
+      responses:
+        200:
+          description: An array of Places
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Place'
+        default:
+          description: Unexpected error
+          schema:
+            $ref : '#/definitions/Error' 
+    put:
+      summary: Update Place
+      description: Id of Place for updating is specified in body. 
+      parameters:
+        - name: item
+          in: body
+          description: Place
+          required: true
+          schema: 
+            $ref: '#/definitions/Place'
+      tags:
+        - Places
+      consumes:
+        - application/json
+      responses:
+        200:
+          description: An array of places
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Place'
+        default:
+          description: Unexpected error
+          schema:
+            $ref : '#/definitions/Error'       
+  /places/{id}:
+    get:
+      summary: Unique Place
+      description: The Places endpoint returns all information about the specific Place.
+      parameters:
+        - name: id
+          in: path
+          description: Unique identifier for Place
+          required: true
+          type: string
+      tags:
+        - Places
+      produces: [application/json]
+      responses:
+        200:
+          description: Place
+          schema:
+              $ref: '#/definitions/Place'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      summary: Update Place
+      description: Id of Place for updating is specified as query parameter. If id specified in body also then body id will be ignored.
+      parameters:
+        - name: id
+          in: path
+          description: Unique identifier for Place
+          required: true
+          type: string
+        - name: item
+          in: body
+          description: Place
+          required: true
+          schema: 
+            $ref: '#/definitions/Place'
+      consumes:
+        - application/json
+      tags:
+        - Places
+      responses:
+        200:
+          description: An array of places
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Place'
+        default:
+          description: Unexpected error
+          schema:
+            $ref : '#/definitions/Error'       
+    delete:
+      summary: Delete Place
+      parameters:
+        - name: id
+          in: path
+          description: Unique identifier for Place
+          required: true
+          type: string
+      tags:
+        - Places
+      responses:
+        200:
+          description: OK
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    
+            
+definitions:
+  Place:
+    type: object
+    properties:
+      item:
+        type: object
+        properties:
+          id:
+            type: string
+            description: Unique identifier representing a specific place.
+          location:
+            $ref : '#/definitions/GeoJsonGeometry'
+          name:
+            type: string
+            description: Display name of place
+          description:
+            type: string
+            description: Description of place.
+          categories:
+            type: array
+            items:
+              type: string
+          image:
+            type: string
+            description: URL for main image representing the place.
+      meta:
+        type: object
+        properties:
+          self:
+            type: string
+  PlaceArray:
+    type: object
+    properties:
+      items:
+        type: array
+        items: 
+          $ref : '#/definitions/Place'
+      meta:
+        type: object
+        properties:
+          self:
+            type: string
+          next: 
+            type: string
+          prev:
+            type: string
+  GeoJsonGeometry:
+    type: object
+    properties:
+      type:
+        type: string
+        enum: ["Point", "MultiPoint", "LineString", "MultiLineString", "Polygon", "MultiPolygon"]
+      coordinates:
+        type: array
+        items: 
+          type: number
+          format: double
+          example: [4.49965, 52.06891]
+  Error:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      fields:
+        type: string
