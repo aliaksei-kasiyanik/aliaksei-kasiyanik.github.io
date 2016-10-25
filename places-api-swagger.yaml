@@ -1,23 +1,26 @@
-# this is an example of the Places API
-# as a demonstration of an API spec in YAML
+
 swagger: '2.0'
 info:
   title: Places API
   description: Move your app forward with the Places API
   version: "0.0.1"
-# the domain of the service
-host: api.places.com
-# array of all schemes that your API supports
+  contact:
+    name: Aliaksei Kasiyanik
+    url: https://github.com/aliaksei-kasiyanik
+    email: "aleksey.kasianik@gmail.com"
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+host: places.com
 schemes:
   - https
-# will be prefixed to all paths
-basePath: /v1
+basePath: /api/v1
 produces:
   - application/json
 paths:
   /places:
     get:
-      summary: Return Places by location
+      summary: Find Places by location
       description: >
         The Places endpoint returns list of Places at a given location with information about each Place. 
       parameters:
@@ -54,15 +57,21 @@ paths:
       produces: [application/json]
       responses:
         200:
-          description: An array of places
+          description: OK. Success.
           schema:
             $ref: '#/definitions/PlaceArray'
-        default:
-          description: Unexpected error
+        204:
+          description: NO CONTENT. Success but nothing to return for specified parameters. Empty response body.
+        400:
+          description: BAD REQUEST. Domain validation errors, missing parameters, etc. 
+          schema:
+            $ref : '#/definitions/Error'
+        500:
+          description: INTERNAL SERVER ERROR. Unexpected error. Never returning intentionally.
           schema:
             $ref : '#/definitions/Error'
     post:
-      summary: Create new Place
+      summary: Create Place
       description: >
         This endpoint creates new Place. New Place id will be generated either on backend site or by client. If second then id must be specified in body.
       parameters:
@@ -77,14 +86,20 @@ paths:
       tags:
         - Places
       responses:
-        200:
-          description: An array of Places
+        201:
+          description: CREATED. Successful Place creation occurred.
           schema:
-            type: array
-            items:
               $ref: '#/definitions/Place'
-        default:
-          description: Unexpected error
+        400:
+          description: BAD REQUEST. Domain validation errors, missing parameters, etc. 
+          schema:
+            $ref : '#/definitions/Error'
+        409:
+           description: CONFLICT. Duplicate entries, trying to create two places with the same information.
+           schema:
+            $ref : '#/definitions/Error'
+        500:
+          description: INTERNAL SERVER ERROR. Unexpected error. Never returning intentionally.
           schema:
             $ref : '#/definitions/Error' 
     put:
@@ -102,19 +117,23 @@ paths:
       consumes:
         - application/json
       responses:
-        200:
-          description: An array of places
+        204:
+          description: NO CONTENT. Successful Place update.
+        400:
+          description: BAD REQUEST. Domain validation errors, missing parameters, etc. 
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/Place'
-        default:
-          description: Unexpected error
+            $ref : '#/definitions/Error'
+        409:
+           description: CONFLICT. Attempt to update out-to-date version of Place.
+           schema:
+            $ref : '#/definitions/Error'
+        500:
+          description: INTERNAL SERVER ERROR. Unexpected error. Never returning intentionally.
           schema:
             $ref : '#/definitions/Error'       
   /places/{id}:
     get:
-      summary: Unique Place
+      summary: Find Place by id
       description: The Places endpoint returns all information about the specific Place.
       parameters:
         - name: id
@@ -127,13 +146,21 @@ paths:
       produces: [application/json]
       responses:
         200:
-          description: Place
+          description: OK. Success.
           schema:
-              $ref: '#/definitions/Place'
-        default:
-          description: Unexpected error
+            $ref: '#/definitions/Place'
+        404:
+          description: NOT FOUND. Place with id doesn't exist.
           schema:
-            $ref: '#/definitions/Error'
+            $ref : '#/definitions/Error'
+        400:
+          description: BAD REQUEST. Invalid parameters. 
+          schema:
+            $ref : '#/definitions/Error'
+        500:
+          description: INTERNAL SERVER ERROR. Unexpected error. Never returning intentionally.
+          schema:
+            $ref : '#/definitions/Error'
     put:
       summary: Update Place
       description: Id of Place for updating is specified as query parameter. If id specified in body also then body id will be ignored.
@@ -154,14 +181,18 @@ paths:
       tags:
         - Places
       responses:
-        200:
-          description: An array of places
+        204:
+          description: NO CONTENT. Successful Place update.
+        400:
+          description: BAD REQUEST. Domain validation errors, missing parameters, etc. 
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/Place'
-        default:
-          description: Unexpected error
+            $ref : '#/definitions/Error'
+        409:
+           description: CONFLICT. Attempt to update out-to-date version of Place.
+           schema:
+            $ref : '#/definitions/Error'
+        500:
+          description: INTERNAL SERVER ERROR. Unexpected error. Never returning intentionally.
           schema:
             $ref : '#/definitions/Error'       
     delete:
@@ -175,12 +206,12 @@ paths:
       tags:
         - Places
       responses:
-        200:
-          description: OK
-        default:
-          description: Unexpected error
+        204:
+          description: NO CONTENT. Successful Place delete or there is no place with such id.
+        500:
+          description: INTERNAL SERVER ERROR. Unexpected error. Never returning intentionally.
           schema:
-            $ref: '#/definitions/Error'
+            $ref : '#/definitions/Error'
     
             
 definitions:
@@ -193,26 +224,32 @@ definitions:
           id:
             type: string
             description: Unique identifier representing a specific place.
+            example: "f4gh45hg2gkjg52"
           location:
             $ref : '#/definitions/GeoJsonGeometry'
           name:
             type: string
             description: Display name of place
+            example: Mir Castle Complex
           description:
             type: string
             description: Description of place.
+            example: Mir Castle is a UNESCO World Heritage site in Belarus.
           categories:
             type: array
             items:
               type: string
+              example: ["castle", "historic", "belarus"]
           image:
             type: string
             description: URL for main image representing the place.
-      meta:
+            example: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Mir_castle_in_spring.JPG/1920px-Mir_castle_in_spring.JPG"
+      _meta:
         type: object
         properties:
           self:
             type: string
+            example: "/places/f4gh45hg2gkjg52"
   PlaceArray:
     type: object
     properties:
@@ -220,27 +257,31 @@ definitions:
         type: array
         items: 
           $ref : '#/definitions/Place'
-      meta:
+      _meta:
         type: object
         properties:
           self:
             type: string
+            example: "/places?latitude=53.4511508&longitude=26.4729114&offset=20&limit=10"
           next: 
             type: string
+            example: "/places?latitude=53.4511508&longitude=26.4729114&offset=30&limit=10"
           prev:
             type: string
+            example: "/places?latitude=53.4511508&longitude=26.4729114&offset=10&limit=10"
   GeoJsonGeometry:
     type: object
     properties:
       type:
         type: string
         enum: ["Point", "MultiPoint", "LineString", "MultiLineString", "Polygon", "MultiPolygon"]
+        example: "Point"
       coordinates:
         type: array
         items: 
           type: number
           format: double
-          example: [4.49965, 52.06891]
+          example: [53.4511508,26.4729114]
   Error:
     type: object
     properties:
