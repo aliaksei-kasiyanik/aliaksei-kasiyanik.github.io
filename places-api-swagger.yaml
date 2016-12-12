@@ -60,8 +60,6 @@ paths:
           description: OK. Success.
           schema:
             $ref: '#/definitions/PlaceArray'
-        204:
-          description: NO CONTENT. Success but nothing to return for specified parameters. Empty response body.
         400:
           description: BAD REQUEST. Domain validation errors, missing parameters, etc. 
           schema:
@@ -102,35 +100,6 @@ paths:
           description: INTERNAL SERVER ERROR. Unexpected error. Never returning intentionally.
           schema:
             $ref : '#/definitions/Error' 
-    put:
-      summary: Update Place
-      description: Id of Place for updating is specified in body. 
-      parameters:
-        - name: item
-          in: body
-          description: Place
-          required: true
-          schema: 
-            $ref: '#/definitions/Place'
-      tags:
-        - Places
-      consumes:
-        - application/json
-      responses:
-        204:
-          description: NO CONTENT. Successful Place update.
-        400:
-          description: BAD REQUEST. Domain validation errors, missing parameters, etc. 
-          schema:
-            $ref : '#/definitions/Error'
-        409:
-           description: CONFLICT. Attempt to update out-to-date version of Place.
-           schema:
-            $ref : '#/definitions/Error'
-        500:
-          description: INTERNAL SERVER ERROR. Unexpected error. Never returning intentionally.
-          schema:
-            $ref : '#/definitions/Error'       
   /places/{id}:
     get:
       summary: Find Place by id
@@ -207,7 +176,9 @@ paths:
         - Places
       responses:
         204:
-          description: NO CONTENT. Successful Place delete or there is no place with such id.
+          description: NO CONTENT. Successful Place delete.
+        404:
+          description: NOT FOUND. Place with such id doesn't exist or place has been removed.
         500:
           description: INTERNAL SERVER ERROR. Unexpected error. Never returning intentionally.
           schema:
