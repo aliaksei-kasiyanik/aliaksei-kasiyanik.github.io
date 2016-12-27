@@ -1,4 +1,3 @@
-
 swagger: '2.0'
 info:
   title: Places API
@@ -11,10 +10,9 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-host: places.com
+host: gotravel.today
 schemes:
-  - https
-basePath: /api/v1
+  - http
 produces:
   - application/json
 paths:
@@ -22,18 +20,18 @@ paths:
     get:
       summary: Find Places by location
       description: >
-        The Places endpoint returns list of Places at a given location with information about each Place. 
+        The Places endpoint returns list of Places at a given location with information about each Place.
       parameters:
-        - name: latitude
+        - name: lat
           in: query
           description: Latitude component of location.
-          required: true
+          required: false
           type: number
           format: double
-        - name: longitude
+        - name: lon
           in: query
           description: Longitude component of location.
-          required: true
+          required: false
           type: number
           format: double
         - name: radius
@@ -47,6 +45,7 @@ paths:
           type: integer
           format: int32
           description: Offset the list of returned results by this amount. Default is zero.
+          required: false
         - name: limit
           in: query
           type: integer
@@ -78,7 +77,7 @@ paths:
           description: Place
           required: true
           schema: 
-            $ref: '#/definitions/Place'
+            $ref: '#/definitions/PurePlace'
       consumes:
         - application/json
       tags:
@@ -144,7 +143,7 @@ paths:
           description: Place
           required: true
           schema: 
-            $ref: '#/definitions/Place'
+            $ref: '#/definitions/PurePlace'
       consumes:
         - application/json
       tags:
@@ -186,16 +185,30 @@ paths:
     
             
 definitions:
+  BasePlace:
+    type: object
+    properties:
+      item:
+        type: object
+        properties:
+          location:
+            $ref : '#/definitions/GeoJsonGeometry'
+          name:
+            type: string
+            description: Display name of place
+            example: Mir Castle Complex
+      _meta:
+        type: object
+        properties:
+          self:
+            type: string
+            example: "/places/f4gh45hg2gkjg52"
   Place:
     type: object
     properties:
       item:
         type: object
         properties:
-          id:
-            type: string
-            description: Unique identifier representing a specific place.
-            example: "f4gh45hg2gkjg52"
           location:
             $ref : '#/definitions/GeoJsonGeometry'
           name:
@@ -221,13 +234,35 @@ definitions:
           self:
             type: string
             example: "/places/f4gh45hg2gkjg52"
+  PurePlace:
+    type: object
+    properties:
+      location:
+        $ref : '#/definitions/GeoJsonGeometry'
+      name:
+        type: string
+        description: Display name of place
+        example: Mir Castle Complex
+      description:
+        type: string
+        description: Description of place.
+        example: Mir Castle is a UNESCO World Heritage site in Belarus.
+      categories:
+        type: array
+        items:
+          type: string
+          example: ["castle", "historic", "belarus"]
+      image:
+        type: string
+        description: URL for main image representing the place.
+        example: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Mir_castle_in_spring.JPG/1920px-Mir_castle_in_spring.JPG"
   PlaceArray:
     type: object
     properties:
       items:
         type: array
         items: 
-          $ref : '#/definitions/Place'
+          $ref : '#/definitions/BasePlace'
       _meta:
         type: object
         properties:
@@ -245,7 +280,7 @@ definitions:
     properties:
       type:
         type: string
-        enum: ["Point", "MultiPoint", "LineString", "MultiLineString", "Polygon", "MultiPolygon"]
+        enum: ["Point"]
         example: "Point"
       coordinates:
         type: array
@@ -260,6 +295,4 @@ definitions:
         type: integer
         format: int32
       message:
-        type: string
-      fields:
         type: string
